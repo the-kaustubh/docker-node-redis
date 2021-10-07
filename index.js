@@ -1,22 +1,36 @@
+const redis = require('redis')
 const express = require('express')
 const app = express()
-const redis = require('redis')
-const cache = redis.createClient(6379, "redis-server")
+const mongoose = require('mongoose')
+
+mongoose.connect(process.env.MONGO_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true
+})
+
+const db = mongoose.connection
+
+db.on('error', (e) => console.log(e))
+db.once('open', () => console.log('Connected to Database'))
+
+const cache = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST)
 
 cache.on('connect', () => {
   console.log("cache initialised")
 })
 
-app.get('/', (_req, res) => {
-  cache.get('name', (e, r) => {
+app.get('/r/:key', (req, res) => {
+  cache.get(req.params.key, (_e, r) => {
     console.log(r)
     res.json({msg: r })
   })
 })
 
-app.get('/k/:name', (req, res) => {
-  console.log(req.params.name)
-  const x = cache.set('name', req.params.name)
+app.get('/w/:key/:value', (req, res) => {
+  console.log({ key: req.params.key, val: req.params.value })
+  const x = cache.set(req.params.key, req.params.value)
   res.json({ msg: x })
 })
 
