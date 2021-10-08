@@ -10,7 +10,7 @@ services:
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis-server
-      - MONGO_URL=mongo://mongo-server
+      - MONGO_URL=mongodb://mongo-server:27017/trial
   mongo-server:
     image: 'mongo'
   redis-server:
